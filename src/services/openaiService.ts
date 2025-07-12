@@ -18,8 +18,11 @@ class OpenAIService {
 
   async analyzeFinancialQuery(query: FinancialQuery): Promise<FinancialAnalysis> {
     try {
-      // Gather current market context from data service
-      const marketContext = await dataService.gatherContextForQuery(query.question);
+      // Gather current market context and references from data service
+      const [marketContext, references] = await Promise.all([
+        dataService.gatherContextForQuery(query.question),
+        dataService.gatherReferencesForQuery(query.question)
+      ]);
       
       const systemPrompt = `You are a financial advisor AI that provides data-backed investment advice using real-time market data.
       
@@ -60,7 +63,8 @@ class OpenAIService {
         confidence: 0.85, // Higher confidence with real-time data
         sources,
         riskLevel,
-        disclaimer: 'This analysis is based on current market data but is not personalized financial advice. Please consult with a qualified financial advisor before making investment decisions.'
+        disclaimer: 'This analysis is based on current market data but is not personalized financial advice. Please consult with a qualified financial advisor before making investment decisions.',
+        references
       };
     } catch (error) {
       logger.error('Error in OpenAI analysis:', error);
@@ -98,7 +102,8 @@ class OpenAIService {
         confidence: 0.7, // Lower confidence without real-time data
         sources: ['OpenAI GPT-4 Analysis', 'General Market Principles'],
         riskLevel: this.extractRiskLevel(content),
-        disclaimer: 'This analysis is based on general market principles. For current market conditions, please consult recent financial data. This is not personalized financial advice.'
+        disclaimer: 'This analysis is based on general market principles. For current market conditions, please consult recent financial data. This is not personalized financial advice.',
+        references: []
       };
     } catch (error) {
       logger.error('Error in fallback OpenAI analysis:', error);

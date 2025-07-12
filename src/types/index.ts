@@ -9,6 +9,17 @@ export interface FinancialAnalysis {
   sources: string[];
   riskLevel: 'low' | 'medium' | 'high';
   disclaimer: string;
+  references: Reference[];
+}
+
+export interface Reference {
+  id: string;
+  source: string;
+  type: string;
+  timestamp: Date;
+  url?: string;
+  title?: string;
+  symbol?: string;
 }
 
 export interface MarketData {

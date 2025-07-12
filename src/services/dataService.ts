@@ -25,12 +25,23 @@ interface VectorData {
   distance?: number;
 }
 
+interface Reference {
+  id: string;
+  source: string;
+  type: string;
+  timestamp: Date;
+  url?: string;
+  title?: string;
+  symbol?: string;
+}
+
 interface QueryResponse {
   results: VectorData[];
   total: number;
   query: string;
   processingTime: number;
   cached?: boolean;
+  references?: Reference[];
 }
 
 export class DataService {
@@ -222,6 +233,25 @@ export class DataService {
       
       return `[${type.toUpperCase()}] ${source} (${timestamp}): ${item.content}`;
     }).join('\n\n');
+  }
+
+  // Gather references from query results
+  async gatherReferencesForQuery(query: string): Promise<Reference[]> {
+    try {
+      const queryResult = await this.query({
+        query,
+        limit: 10,
+        timeRange: {
+          start: new Date(Date.now() - 48 * 60 * 60 * 1000), // Last 48 hours
+          end: new Date(),
+        },
+      });
+
+      return queryResult.references || [];
+    } catch (error) {
+      logger.error('Failed to gather references for query:', error);
+      return [];
+    }
   }
 
   // Enhanced context gathering for financial queries
